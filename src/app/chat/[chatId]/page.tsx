@@ -60,7 +60,6 @@ export default function Chat() {
     try {
       setIsLoading(true);
 
-      // Save user message to Firebase
       const userMessageData = await axios.post("/api/firebase/messages", {
         chatId,
         content: newMessage,
@@ -78,7 +77,7 @@ export default function Chat() {
       setMessages((prev) => [...prev, userMessage]);
 
       const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCR3kE-L9Lflvg-OCmvdVt9fsM6S2CdFOE`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: {
