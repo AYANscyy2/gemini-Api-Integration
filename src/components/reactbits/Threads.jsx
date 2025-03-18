@@ -152,13 +152,13 @@ const Threads = ({
             gl.canvas.width,
             gl.canvas.height,
             gl.canvas.width / gl.canvas.height
-          ),
+          )
         },
         uColor: { value: new Color(...color) },
         uAmplitude: { value: amplitude },
         uDistance: { value: distance },
-        uMouse: { value: new Float32Array([0.5, 0.5]) },
-      },
+        uMouse: { value: new Float32Array([0.5, 0.5]) }
+      }
     });
 
     const mesh = new Mesh(gl, { geometry, program });
