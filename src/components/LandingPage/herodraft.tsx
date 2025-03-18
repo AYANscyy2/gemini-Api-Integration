@@ -52,7 +52,7 @@ export function Heropt() {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 text-white">
       <h1 className="text-2xl font-bold mb-6">Gemini Chatbot</h1>
 
       <button
@@ -62,7 +62,7 @@ export function Heropt() {
         Start New Chat
       </button>
 
-      <div className="space-y-2">
+      <div className="space-y-2 ">
         <h2 className="text-xl font-semibold">Previous Chats</h2>
         {isLoading ? (
           <p>Loading chat sessions...</p>
