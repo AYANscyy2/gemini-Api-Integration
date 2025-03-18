@@ -1,19 +1,24 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import axios from "axios";
 import {
-  ArrowLeft,
+  // ArrowLeft,
   // Code,
   // Text,
   // HandHelping,
   // Sparkle,
   User,
   Bot,
-  Send
+  Send,
+  X,
+  Menu,
+  // ChartBar,
+  MessageSquare
 } from "lucide-react";
 import Threads from "@/components/reactbits/Threads";
 import { menuItems } from "@/config/menu-data";
+import { Heropt } from "@/components/LandingPage/herodraft";
 
 interface Message {
   id: string;
@@ -24,7 +29,7 @@ interface Message {
 }
 
 export default function Chat() {
-  const router = useRouter();
+  // const router = useRouter();
   const params = useParams<{ chatId: string }>();
   const { chatId } = params;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -33,6 +38,7 @@ export default function Chat() {
   const [chatTitle, setChatTitle] = useState("");
   const [sessionDocId, setSessionDocId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   console.log(sessionDocId);
 
@@ -187,97 +193,113 @@ export default function Chat() {
       <div className="relative w-full" style={{ height: "100vh" }}>
         <Threads amplitude={2} distance={0.1} enableMouseInteraction={true} />
       </div>
+      <button
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        className="fixed top-4 right-2 cursor-pointer z-50 p-2 text-white md:hidden"
+      >
+        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
 
-      <div className="absolute w-full inset-0 flex flex-col h-screen p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push("/")}
-              className="p-2 text-zinc-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <h1 className="text-base font-medium text-zinc-200">
-              {chatTitle || "Chat"}
-            </h1>
-          </div>
-        </div>
+      <div
+        className={`fixed top-0 left-0 h-full mt-20  transform transition-transform duration-300 ease-in-out z-40 md:hidden ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <Heropt />
+      </div>
 
-        <div className="flex-1 overflow-y-auto rounded-2xl mb-4 backdrop-blur-md bg-zinc-900/30">
-          <div className="p-4 space-y-6 h-full">
-            {isLoading && messages.length === 0 ? (
-              <div className="text-center text-zinc-500 text-sm">
-                Loading messages...
-              </div>
-            ) : messages.length === 0 ? (
-              <EmptyState />
-            ) : (
-              sortedMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-center gap-3 ${
-                    message.role === "user" ? "flex-row-reverse" : "flex-row"
-                  }`}
-                >
+      <div className="flex flex-col justify-center items-center absolute inset-0 px-4 sm:px-8 md:px-16 lg:px-24">
+        {isMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
+        <div className="absolute  w-full inset-0 flex flex-col h-screen pt-16 md:pt-4 p-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <MessageSquare className="text-white" />
+              <h1 className="text-base font-medium text-zinc-200">
+                {chatTitle || "Chat"}
+              </h1>
+            </div>
+          </div>{" "}
+          <div className="h-[1px] bg-gray-600 w-full" />
+          <div className="flex-1 overflow-y-auto rounded-2xl mb-4 backdrop-blur-md bg-zinc-900/30">
+            <div className="p-4 space-y-6 h-full">
+              {isLoading && messages.length === 0 ? (
+                <div className="text-center text-zinc-500 text-sm">
+                  Loading messages...
+                </div>
+              ) : messages.length === 0 ? (
+                <EmptyState />
+              ) : (
+                sortedMessages.map((message) => (
                   <div
-                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.role === "user" ? "bg-blue-500" : "bg-zinc-700"
+                    key={message.id}
+                    className={`flex items-center gap-3 ${
+                      message.role === "user" ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
-                    {message.role === "user" ? (
-                      <User size={14} className="text-white" />
-                    ) : (
-                      <Bot size={14} className="text-white" />
-                    )}
-                  </div>
-                  <div
-                    className={`rounded-2xl p-3 max-w-[75%] ${
-                      message.role === "user"
-                        ? "bg-zinc-800 text-white"
-                        : "bg-zinc-700/50 text-zinc-200"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
-                    </p>
-                    <div className="mt-1.5 text-[11px] text-zinc-500">
-                      {formatTimestamp(message.timestamp)}
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        message.role === "user" ? "bg-blue-500" : "bg-zinc-700"
+                      }`}
+                    >
+                      {message.role === "user" ? (
+                        <User size={14} className="text-white" />
+                      ) : (
+                        <Bot size={14} className="text-white" />
+                      )}
+                    </div>
+                    <div
+                      className={`rounded-2xl p-3 max-w-[75%] ${
+                        message.role === "user"
+                          ? "bg-zinc-800 text-white"
+                          : "bg-zinc-700/50 text-zinc-200"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                      <div className="mt-1.5 text-[11px] text-zinc-500">
+                        {formatTimestamp(message.timestamp)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-        </div>
-
-        <div className="h-[80px] w-full bg-black rounded-3xl shadow-lg bg-gradient-to-tl from-neutral-800 via-zinc-400 to-neutral-800">
-          <div className="relative w-full h-full flex justify-end items-center gap-2 bg-black rounded-3xl">
-            <form
-              onSubmit={sendMessage}
-              className="w-full h-full flex items-center gap-4"
-            >
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="w-full h-12 px-4 text-sm bg-zinc-800/50 rounded-xl border border-zinc-700/50 focus:border-zinc-600 focus:outline-none text-white placeholder-zinc-500 transition-colors"
-                  disabled={isLoading}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="h-12 px-6 flex items-center justify-center gap-2 bg-white/30 hover:bg-white/10 disabled:bg-zinc-800 disabled:cursor-not-allowed rounded-xl transition-colors duration-200"
+          <div className="h-[80px] w-full bg-black rounded-3xl shadow-lg bg-gradient-to-tl from-neutral-800 via-zinc-400 to-neutral-800">
+            <div className="relative w-full h-full flex justify-end items-center gap-2 bg-black rounded-3xl">
+              <form
+                onSubmit={sendMessage}
+                className="w-full h-full flex items-center gap-4"
               >
-                <span className="text-sm font-medium text-white">
-                  {isLoading ? "Sending..." : "Send"}
-                </span>
-                <Send size={16} className="text-white" />
-              </button>
-            </form>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className="w-full h-12 px-4 text-sm bg-zinc-800/50 rounded-xl border border-zinc-700/50 focus:border-zinc-600 focus:outline-none text-white placeholder-zinc-500 transition-colors"
+                    disabled={isLoading}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-12 px-6 flex items-center justify-center gap-2 bg-white/30 hover:bg-white/10 disabled:bg-zinc-800 disabled:cursor-not-allowed rounded-xl transition-colors duration-200"
+                >
+                  <span className="text-sm font-medium text-white">
+                    {isLoading ? "Sending..." : "Send"}
+                  </span>
+                  <Send size={16} className="text-white" />
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
