@@ -26,12 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex gap-5`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex `}
       >
-        <div className="h-screen overflow-y-auto w-[20%]">
+        <div className= "hidden md:flex border-r-[1px] border-neutral-600 text-white bg-black h-screen overflow-y-auto w-[20%]">
           <Heropt />
         </div>
-        <div className="w-[80%] overflo-x-hidden">{children}</div>
+        <div className="w-[100%] md:w-[80%] overflow-x-hidden">{children}</div>
       </body>
     </html>
   );
