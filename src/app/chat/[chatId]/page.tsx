@@ -2,25 +2,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
-import {
-  ArrowLeft,
-  // Code,
-  // Text,
-  // HandHelping,
-  // Sparkle,
-  User,
-  Bot,
-  Send
-} from "lucide-react";
-import Threads from "@/components/reactbits/Threads";
-import { menuItems } from "@/config/menu-data";
 
 interface Message {
   id: string;
   chatId: string;
   content: string;
   role: "user" | "assistant";
-  timestamp: string | { seconds: number; nanoseconds: number };
+  timestamp: string;
 }
 
 export default function Chat() {
@@ -33,9 +21,7 @@ export default function Chat() {
   const [chatTitle, setChatTitle] = useState("");
   const [sessionDocId, setSessionDocId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   console.log(sessionDocId);
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -47,7 +33,9 @@ export default function Chat() {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `/api/firebase/messages?chatId=${chatId}`
+          `/api/firebase/messages?chatId=${
+            chatId || "97791a1b-4fb5-4a0d-9087-a0dbfa2427da"
+          }`
         );
 
         if (response.data.messages) {
@@ -55,8 +43,6 @@ export default function Chat() {
           setChatTitle(response.data.chatTitle || "Chat");
           setSessionDocId(response.data.sessionDocId);
         }
-
-        console.log(response.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
       } finally {
@@ -115,7 +101,6 @@ export default function Chat() {
       const assistantReply =
         geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "Sorry, I didn't understand that.";
-
       const assistantMessageData = await axios.post("/api/firebase/messages", {
         chatId,
         content: assistantReply,
@@ -139,148 +124,64 @@ export default function Chat() {
     }
   };
 
-  const sortedMessages = [...messages].sort((a, b) => {
-    const getTime = (
-      timestamp: string | { seconds: number; nanoseconds: number } | undefined
-    ) => {
-      if (!timestamp) return 0;
-      if (typeof timestamp === "string") {
-        return new Date(timestamp).getTime();
-      } else {
-        return timestamp.seconds * 1000;
-      }
-    };
-
-    return getTime(a?.timestamp) - getTime(b?.timestamp);
-  });
-
-  const formatTimestamp = (timestamp: Message["timestamp"]) => {
-    if (typeof timestamp === "object" && timestamp && "seconds" in timestamp) {
-      return new Date(timestamp.seconds * 1000).toLocaleTimeString();
-    } else if (typeof timestamp === "string") {
-      return new Date(timestamp).toLocaleTimeString();
-    }
-    return "Unknown time";
-  };
-
-  const EmptyState = () => (
-    <div className="flex flex-col w-full h-full justify-center items-center">
-      <h1 className="text-4xl sm:text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-neutral-600 to-neutral-400 font-light mb-10">
-        What can I help with?
-      </h1>
-      <div className="flex flex-wrap justify-center gap-4 text-white max-w-4xl">
-        {menuItems.map((item, index) => (
-          <div
-            key={index}
-            className="p-4 bg-neutral-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-neutral-700 transition-colors"
-          >
-            {item.icon}
-            <span className="text-sm font-medium">{item.text}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen relative w-full flex justify-center bg-black">
-      <div className="relative w-full" style={{ height: "100vh" }}>
-        <Threads amplitude={2} distance={0.1} enableMouseInteraction={true} />
+    <div className="container mx-auto p-4 flex flex-col h-screen">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold">{chatTitle || "Chat"}</h1>
+        <button
+          onClick={() => router.push("/")}
+          className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
+        >
+          Back to Chats
+        </button>
       </div>
 
-      <div className="absolute w-full inset-0 flex flex-col h-screen p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push("/")}
-              className="p-2 text-zinc-400 hover:text-white transition-colors"
+      <div className="flex-1 overflow-y-auto border rounded p-4 mb-4">
+        {isLoading && messages.length === 0 ? (
+          <div className="text-center text-gray-500 my-8">
+            Loading messages...
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center text-gray-500 my-8">
+            No messages yet. Start a conversation!
+          </div>
+        ) : (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`mb-4 p-3 rounded-lg ${
+                message.role === "user"
+                  ? "bg-blue-100 ml-auto max-w-[75%] text-right"
+                  : "bg-gray-100 mr-auto max-w-[75%] text-left"
+              }`}
             >
-              <ArrowLeft size={20} />
-            </button>
-            <h1 className="text-base font-medium text-zinc-200">
-              {chatTitle || "Chat"}
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto rounded-2xl mb-4 backdrop-blur-md bg-zinc-900/30">
-          <div className="p-4 space-y-6 h-full">
-            {isLoading && messages.length === 0 ? (
-              <div className="text-center text-zinc-500 text-sm">
-                Loading messages...
-              </div>
-            ) : messages.length === 0 ? (
-              <EmptyState />
-            ) : (
-              sortedMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-center gap-3 ${
-                    message.role === "user" ? "flex-row-reverse" : "flex-row"
-                  }`}
-                >
-                  <div
-                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.role === "user" ? "bg-blue-500" : "bg-zinc-700"
-                    }`}
-                  >
-                    {message.role === "user" ? (
-                      <User size={14} className="text-white" />
-                    ) : (
-                      <Bot size={14} className="text-white" />
-                    )}
-                  </div>
-                  <div
-                    className={`rounded-2xl p-3 max-w-[75%] ${
-                      message.role === "user"
-                        ? "bg-zinc-800 text-white"
-                        : "bg-zinc-700/50 text-zinc-200"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
-                    </p>
-                    <div className="mt-1.5 text-[11px] text-zinc-500">
-                      {formatTimestamp(message.timestamp)}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        <div className="h-[80px] w-full bg-black rounded-3xl shadow-lg bg-gradient-to-tl from-neutral-800 via-zinc-400 to-neutral-800">
-          <div className="relative w-full h-full flex justify-end items-center gap-2 bg-black rounded-3xl">
-            <form
-              onSubmit={sendMessage}
-              className="w-full h-full flex items-center gap-4"
-            >
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="w-full h-12 px-4 text-sm bg-zinc-800/50 rounded-xl border border-zinc-700/50 focus:border-zinc-600 focus:outline-none text-white placeholder-zinc-500 transition-colors"
-                  disabled={isLoading}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="h-12 px-6 flex items-center justify-center gap-2 bg-white/30 hover:bg-white/10 disabled:bg-zinc-800 disabled:cursor-not-allowed rounded-xl transition-colors duration-200"
-              >
-                <span className="text-sm font-medium text-white">
-                  {isLoading ? "Sending..." : "Send"}
-                </span>
-                <Send size={16} className="text-white" />
-              </button>
-            </form>
-          </div>
-        </div>
+              <p>{message.content}</p>
+              <small className="text-gray-500">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </small>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
       </div>
+
+      <form onSubmit={sendMessage} className="flex">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type your message..."
+          className="flex-1 border rounded-l p-2"
+          disabled={isLoading}
+        />
+        <button
+          type="submit"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r"
+          disabled={isLoading}
+        >
+          {isLoading ? "Sending..." : "Send"}
+        </button>
+      </form>
     </div>
   );
 }
