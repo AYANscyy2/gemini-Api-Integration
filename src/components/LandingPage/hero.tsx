@@ -13,7 +13,7 @@ export const Hero = () => {
   };
   return (
     <>
-      <div className="min-h-screen flex justify-center bg-black">
+      <div className="min-h-screen relative w-full flex justify-center bg-black">
         <div className="relative w-full" style={{ height: "100vh" }}>
           <Threads amplitude={2} distance={0.1} enableMouseInteraction={true} />
         </div>

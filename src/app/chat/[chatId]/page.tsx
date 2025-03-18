@@ -22,7 +22,6 @@ export default function Chat() {
   const [sessionDocId, setSessionDocId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   console.log(sessionDocId);
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -34,7 +33,9 @@ export default function Chat() {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `/api/firebase/messages?chatId=${chatId}`
+          `/api/firebase/messages?chatId=${
+            chatId || "97791a1b-4fb5-4a0d-9087-a0dbfa2427da"
+          }`
         );
 
         if (response.data.messages) {
@@ -59,6 +60,7 @@ export default function Chat() {
     try {
       setIsLoading(true);
 
+      // Save user message to Firebase
       const userMessageData = await axios.post("/api/firebase/messages", {
         chatId,
         content: newMessage,
@@ -75,25 +77,41 @@ export default function Chat() {
 
       setMessages((prev) => [...prev, userMessage]);
 
-      const geminiResponse = await axios.post("/api/gemini", {
-        prompt: newMessage,
-        chatId,
-        messages: [...messages, userMessage].map((msg) => ({
-          role: msg.role,
-          content: msg.content
-        }))
-      });
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCR3kE-L9Lflvg-OCmvdVt9fsM6S2CdFOE`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: newMessage }]
+              }
+            ]
+          })
+        }
+      );
 
+      if (!geminiResponse.ok) {
+        throw new Error(`Gemini API Error: ${geminiResponse.statusText}`);
+      }
+
+      const geminiData = await geminiResponse.json();
+      const assistantReply =
+        geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "Sorry, I didn't understand that.";
       const assistantMessageData = await axios.post("/api/firebase/messages", {
         chatId,
-        content: geminiResponse.data.response,
+        content: assistantReply,
         role: "assistant"
       });
 
       const assistantMessage = {
         id: assistantMessageData.data.id,
         chatId: chatId as string,
-        content: geminiResponse.data.response,
+        content: assistantReply,
         role: "assistant" as const,
         timestamp: new Date().toISOString()
       };
@@ -134,8 +152,8 @@ export default function Chat() {
               key={message.id}
               className={`mb-4 p-3 rounded-lg ${
                 message.role === "user"
-                  ? "bg-blue-100 ml-auto max-w-3/4 text-right"
-                  : "bg-gray-100 mr-auto max-w-3/4 text-left"
+                  ? "bg-blue-100 ml-auto max-w-[75%] text-right"
+                  : "bg-gray-100 mr-auto max-w-[75%] text-left"
               }`}
             >
               <p>{message.content}</p>
