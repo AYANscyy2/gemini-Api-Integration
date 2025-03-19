@@ -13,7 +13,7 @@ interface ChatSession {
   title: string;
 }
 
-export function Heropt() {
+export function Hero() {
   const router = useRouter();
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,7 +75,7 @@ export function Heropt() {
   };
 
   return (
-    <div className="w-80 h-screen bg-black p-4 flex flex-col">
+    <div className="w-[100vw] md:w-80 h-screen bg-black p-4 flex flex-col">
       <h1 className="text-xl font-semibold text-white mb-6 tracking-tight">
         Gemini Chatbot
       </h1>

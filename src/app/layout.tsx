@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "./globals.css";
-import { Heropt } from "@/components/LandingPage/herodraft";
+import { Hero } from "@/components/LandingPage/hero";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -35,7 +35,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${roboto.variable} ${geistMono.variable} antialiased flex `}
       >
         <div className="hidden md:flex border-r-[1px] border-white/18 text-white bg-black h-screen overflow-y-auto w-[100%] md:w-[20%]">
-          <Heropt />
+          <Hero />
         </div>
         <div className="w-[100%] md:w-[80%] overflow-x-hidden">{children}</div>
       </body>

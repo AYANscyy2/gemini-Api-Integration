@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Threads from "@/components/reactbits/Threads";
 import { menuItems } from "@/config/menu-data";
-import { Heropt } from "@/components/LandingPage/herodraft";
+import { Hero } from "@/components/LandingPage/hero";
 import { ThreeDotsLoader } from "@/components/ui/three-dot-loader";
 
 interface Message {
@@ -191,7 +191,7 @@ export default function Chat() {
   );
 
   return (
-    <div className="min-h-screen relative w-full flex justify-center bg-black">
+    <div className="min-h-[100vh] relative w-full flex justify-center bg-black">
       <div className="relative w-full" style={{ height: "100vh" }}>
         <Threads amplitude={2} distance={0.1} enableMouseInteraction={true} />
       </div>
@@ -203,11 +203,11 @@ export default function Chat() {
       </button>
 
       <div
-        className={`fixed top-0 left-0 h-full mt-20  transform transition-transform duration-300 ease-in-out z-40 md:hidden ${
+        className={`fixed top-4 left-0 h-full  transform transition-transform duration-300 ease-in-out z-40 md:hidden ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Heropt />
+        <Hero />
       </div>
 
       <div className="flex flex-col justify-center items-center absolute inset-0 px-4 sm:px-8 md:px-16 lg:px-24">
@@ -217,17 +217,17 @@ export default function Chat() {
             onClick={() => setIsMenuOpen(false)}
           />
         )}
-        <div className="absolute  w-full inset-0 flex flex-col h-screen  p-4">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
+        <div className="absolute  w-full inset-0 flex flex-col h-full p-4">
+          <div className="flex w-[100vw] bg-black justify-between p-0 m-0 items-center mb-4">
+            <div className="flex items-center mt-3 gap-3">
               <MessageSquare className="text-white" />
               <h1 className="text-base font-medium text-zinc-200">
                 {chatTitle || "Chat"}
               </h1>
             </div>
-          </div>{" "}
-          <div className="h-[1px] bg-gray-600 w-full" />
-          <div className="flex-1 overflow-y-auto rounded-2xl mb-4 backdrop-blur-md bg-zinc-900/30">
+          </div>
+          <div className="h-[1px] p-0 m-0 pl-0 bg-gray-600 w-full" />
+          <div className="flex-1 h-full overflow-y-auto rounded-2xl mb-4 backdrop-blur-md bg-zinc-900/30">
             <div className="p-4 space-y-6 h-full">
               {isLoading && messages.length === 0 ? (
                 <div className="text-center text-zinc-500 text-sm">
