@@ -67,7 +67,7 @@ export default function Chat() {
     try {
       setIsLoading(true);
       const userMessageContent = newMessage;
-      setNewMessage(""); // Clear input immediately for better UX
+      setNewMessage(""); 
 
       const userMessageData = await axios.post("/api/firebase/messages", {
         chatId,

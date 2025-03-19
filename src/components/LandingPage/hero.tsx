@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 // import Link from "next/link";
 import { MessageSquarePlus } from "lucide-react";
-// import { MdDelete } from "react-icons/md";
+import { MdDelete } from "react-icons/md";
 
 interface ChatSession {
   id: string;
@@ -52,21 +52,21 @@ export function Hero() {
     }
   };
 
-  // const handleDeleteChatSession = async (chatId: string) => {
-  //   console.log("ll", chatId);
-  //   try {
-  //     const response = await axios.delete(
-  //       `/api/firebase/chats?chatId=${chatId}`
-  //     );
+  const handleDeleteChatSession = async (chatId: string) => {
+    console.log("ll", chatId);
+    try {
+      const response = await axios.delete(
+        `/api/firebase/chats?chatId=${chatId}`
+      );
 
-  //     if (response.data.success) {
-  //       // console.log("Chat deleted successfully");
-  //       router.refresh();
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting chat:", error);
-  //   }
-  // };
+      if (response.data.success) {
+        // console.log("Chat deleted successfully");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+    }
+  };
 
   useEffect(() => {
     if (pathname === "/") {
@@ -125,14 +125,14 @@ export function Hero() {
                         >
                           {session.title}
                         </div>
-                        {/* <span
+                        <span
                           onClick={() => {
                             handleDeleteChatSession(session.chatId);
                           }}
                           className="z-10"
                         >
                           <MdDelete className="text-white" size={24} />
-                        </span> */}
+                        </span>
                       </div>
                     </span>
                     <span className="text-xs text-zinc-600 mt-1">
