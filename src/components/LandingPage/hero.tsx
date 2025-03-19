@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import Link from "next/link";
+// import Link from "next/link";
 import { MessageSquarePlus } from "lucide-react";
+// import { MdDelete } from "react-icons/md";
 
 interface ChatSession {
   id: string;
@@ -50,6 +51,22 @@ export function Hero() {
       console.error("Error creating new chat:", error);
     }
   };
+
+  // const handleDeleteChatSession = async (chatId: string) => {
+  //   console.log("ll", chatId);
+  //   try {
+  //     const response = await axios.delete(
+  //       `/api/firebase/chats?chatId=${chatId}`
+  //     );
+
+  //     if (response.data.success) {
+  //       // console.log("Chat deleted successfully");
+  //       router.refresh();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error deleting chat:", error);
+  //   }
+  // };
 
   useEffect(() => {
     if (pathname === "/") {
@@ -97,22 +114,33 @@ export function Hero() {
             <p className="text-sm text-zinc-500">No previous chats found.</p>
           ) : (
             chatSessions.map((session) => (
-              <Link
-                key={session.id}
-                href={`/chat/${session.chatId}`}
-                className="block"
-              >
+              <div key={session.id} className="block">
                 <div className="group cursor-pointer p-3 hover:bg-zinc-900 rounded-lg transition-colors duration-200 border-b border-zinc-900">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors duration-200">
-                      {session.title}
+                      <div className="flex justify-between items-center">
+                        <div
+                          onClick={() => router.push(`/chat/${session.chatId}`)}
+                          className=""
+                        >
+                          {session.title}
+                        </div>
+                        {/* <span
+                          onClick={() => {
+                            handleDeleteChatSession(session.chatId);
+                          }}
+                          className="z-10"
+                        >
+                          <MdDelete className="text-white" size={24} />
+                        </span> */}
+                      </div>
                     </span>
                     <span className="text-xs text-zinc-600 mt-1">
                       {formatTimestamp(session.createdAt)}
                     </span>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))
           )}
         </div>
