@@ -1,25 +1,13 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import type React from "react";
+
 import { useParams } from "next/navigation";
 import axios from "axios";
-import {
-  // ArrowLeft,
-  // Code,
-  // Text,
-  // HandHelping,
-  // Sparkle,
-  User,
-  Bot,
-  Send,
-  X,
-  Menu,
-  // ChartBar,
-  MessageSquare
-} from "lucide-react";
+import { User, Bot, Send, X, Menu, MessageSquare } from "lucide-react";
 import Threads from "@/components/reactbits/Threads";
 import { menuItems } from "@/config/menu-data";
 import { Hero } from "@/components/LandingPage/hero";
-import { ThreeDotsLoader } from "@/components/ui/three-dot-loader";
 
 interface Message {
   id: string;
@@ -30,7 +18,6 @@ interface Message {
 }
 
 export default function Chat() {
-  // const router = useRouter();
   const params = useParams<{ chatId: string }>();
   const { chatId } = params;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -38,10 +25,11 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [chatTitle, setChatTitle] = useState("");
   const [sessionDocId, setSessionDocId] = useState<string | null>(null);
+  console.log(sessionDocId);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [geminiResponseLoader, setGeminiResponseLoader] = useState(false);
-  console.log(sessionDocId);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -62,8 +50,6 @@ export default function Chat() {
           setChatTitle(response.data.chatTitle || "Chat");
           setSessionDocId(response.data.sessionDocId);
         }
-
-        console.log(response.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
       } finally {
@@ -80,23 +66,24 @@ export default function Chat() {
 
     try {
       setIsLoading(true);
+      const userMessageContent = newMessage;
+      setNewMessage(""); // Clear input immediately for better UX
 
       const userMessageData = await axios.post("/api/firebase/messages", {
         chatId,
-        content: newMessage,
+        content: userMessageContent,
         role: "user"
       });
 
       const userMessage = {
         id: userMessageData.data.id,
         chatId: chatId as string,
-        content: newMessage,
+        content: userMessageContent,
         role: "user" as const,
         timestamp: new Date().toISOString()
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      setGeminiResponseLoader(true);
 
       const geminiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
@@ -108,7 +95,7 @@ export default function Chat() {
           body: JSON.stringify({
             contents: [
               {
-                parts: [{ text: newMessage }]
+                parts: [{ text: userMessageContent }]
               }
             ]
           })
@@ -139,7 +126,6 @@ export default function Chat() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      setGeminiResponseLoader(false);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -172,18 +158,18 @@ export default function Chat() {
   };
 
   const EmptyState = () => (
-    <div className="flex flex-col w-full h-full justify-center items-center">
-      <h1 className="text-4xl sm:text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-neutral-600 to-neutral-400 font-light mb-10">
+    <div className="flex flex-col w-full h-full justify-center items-center p-4">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-neutral-600 to-neutral-400 font-light mb-6 md:mb-10 text-center">
         What can I help with?
       </h1>
-      <div className="flex flex-wrap justify-center gap-4 text-white max-w-4xl">
+      <div className="flex flex-wrap justify-center gap-3 md:gap-4 text-white max-w-4xl">
         {menuItems.map((item, index) => (
           <div
             key={index}
-            className="p-4 bg-neutral-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-neutral-700 transition-colors"
+            className="p-3 md:p-4 bg-neutral-800 rounded-xl flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-neutral-700 transition-colors"
           >
             {item.icon}
-            <span className="text-sm font-medium">{item.text}</span>
+            <span className="text-xs sm:text-sm font-medium">{item.text}</span>
           </div>
         ))}
       </div>
@@ -191,121 +177,127 @@ export default function Chat() {
   );
 
   return (
-    <div className="min-h-[100vh] relative w-full flex justify-center bg-black">
-      <div className="relative w-full" style={{ height: "100vh" }}>
+    <div className="min-h-screen relative w-full flex justify-center bg-black overflow-hidden">
+      <div className="absolute inset-0 w-full h-full">
         <Threads amplitude={2} distance={0.1} enableMouseInteraction={true} />
       </div>
+
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="fixed top-4 right-2 cursor-pointer z-50 p-2 text-white md:hidden"
+        className="fixed top-4 right-4 z-50 p-2 text-white bg-zinc-800/50 rounded-full md:hidden"
+        aria-label={isMenuOpen ? "Close menu" : "Open menu"}
       >
-        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      <div
-        className={`fixed top-4 left-0 h-full  transform transition-transform duration-300 ease-in-out z-40 md:hidden ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <Hero />
-      </div>
+      {isMenuOpen && (
+        <div
+          className={`fixed top-0 left-0 h-full w-64 sm:w-72 bg-black transform transition-transform duration-300 ease-in-out z-40 md:hidden ${
+            isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <Hero />
+        </div>
+      )}
 
-      <div className="flex flex-col justify-center items-center absolute inset-0 px-4 sm:px-8 md:px-16 lg:px-24">
+      <div className="relative w-full max-w-5xl mx-auto flex flex-col h-screen px-2 sm:px-4 md:px-6">
         {isMenuOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
             onClick={() => setIsMenuOpen(false)}
           />
         )}
-        <div className="absolute  w-full inset-0 flex flex-col h-full p-4">
-          <div className="flex w-[100vw] bg-black justify-between p-0 m-0 items-center mb-4">
-            <div className="flex items-center mt-3 gap-3">
-              <MessageSquare className="text-white" />
-              <h1 className="text-base font-medium text-zinc-200">
-                {chatTitle || "Chat"}
-              </h1>
-            </div>
+        <div className="fixed top-0 left-0 right-0 z-10 bg-black pt-3 pb-2">
+          <div className="flex items-center mt-3 ml-4 gap-3 mb-2">
+            <MessageSquare className="text-white" size={20} />
+            <h1 className="text-base font-medium text-zinc-200 truncate">
+              {chatTitle || "Chat"}
+            </h1>
           </div>
-          <div className="h-[1px] p-0 m-0 pl-0 bg-gray-600 w-full" />
-          <div className="flex-1 h-full overflow-y-auto rounded-2xl mb-4 backdrop-blur-md bg-zinc-900/30">
-            <div className="p-4 space-y-6 h-full">
-              {isLoading && messages.length === 0 ? (
-                <div className="text-center text-zinc-500 text-sm">
-                  Loading messages...
-                </div>
-              ) : messages.length === 0 ? (
-                <EmptyState />
-              ) : (
-                sortedMessages.map((message) => (
+          {/* <div className="h-[1px] bg-gray-600 w-full" /> */}
+        </div>
+
+        <div
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto rounded-lg mt-[68px] backdrop-blur-md bg-zinc-900/30 mb-20"
+        >
+          <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 min-h-full">
+            {isLoading && messages.length === 0 ? (
+              <div className="text-center text-zinc-500 text-sm py-4">
+                Loading messages...
+              </div>
+            ) : messages.length === 0 ? (
+              <EmptyState />
+            ) : (
+              sortedMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex items-start gap-2 sm:gap-3 ${
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  }`}
+                >
                   <div
-                    key={message.id}
-                    className={`flex items-center gap-3 ${
-                      message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
+                      message.role === "user" ? "bg-blue-500" : "bg-zinc-700"
                     }`}
                   >
-                    <div
-                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.role === "user" ? "bg-blue-500" : "bg-zinc-700"
-                      }`}
-                    >
-                      {message.role === "user" ? (
-                        <User size={14} className="text-white" />
-                      ) : (
-                        <Bot size={14} className="text-white" />
-                      )}
-                    </div>
-                    <div
-                      className={`rounded-2xl p-3 max-w-[75%] ${
-                        message.role === "user"
-                          ? "bg-zinc-800 text-white"
-                          : "bg-zinc-700/50 text-zinc-200"
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                      <div className="mt-1.5 text-[11px] text-zinc-500">
-                        {formatTimestamp(message.timestamp)}
-                      </div>
+                    {message.role === "user" ? (
+                      <User size={14} className="text-white" />
+                    ) : (
+                      <Bot size={14} className="text-white" />
+                    )}
+                  </div>
+                  <div
+                    className={`rounded-2xl p-2.5 sm:p-3 max-w-[80%] sm:max-w-[75%] ${
+                      message.role === "user"
+                        ? "bg-zinc-800 text-white"
+                        : "bg-zinc-700/50 text-zinc-200"
+                    }`}
+                  >
+                    <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                      {message.content}
+                    </p>
+                    <div className="mt-1 text-[10px] sm:text-[11px] text-zinc-500">
+                      {formatTimestamp(message.timestamp)}
                     </div>
                   </div>
-                ))
-              )}
-              {geminiResponseLoader && (
-                <div>
-                  <ThreeDotsLoader />
                 </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
           </div>
-          <div className="h-[80px] w-full bg-black rounded-3xl shadow-lg bg-gradient-to-tl from-neutral-800 via-zinc-400 to-neutral-800">
-            <div className="relative w-full h-full flex justify-end items-center gap-2 bg-black rounded-3xl">
-              <form
-                onSubmit={sendMessage}
-                className="w-full h-full flex items-center gap-4"
-              >
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="w-full h-12 px-4 text-sm bg-zinc-800/50 rounded-xl border border-zinc-700/50 focus:border-zinc-600 focus:outline-none text-white placeholder-zinc-500 transition-colors"
-                    disabled={isLoading}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="h-12 px-6 flex items-center justify-center gap-2 bg-white/30 hover:bg-white/10 disabled:bg-zinc-800 disabled:cursor-not-allowed rounded-xl transition-colors duration-200"
+        </div>
+
+        <div className="fixed bottom-0 left-0 right-0 px-2 sm:px-4 md:px-6 pb-3 pt-2 bg-black z-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="h-[60px] sm:h-[70px] rounded-2xl shadow-lg  p-[1px]">
+              <div className="relative w-full h-full flex justify-end items-center gap-2 bg-black rounded-2xl px-2">
+                <form
+                  onSubmit={sendMessage}
+                  className="w-full h-full flex items-center gap-2 sm:gap-4"
                 >
-                  <span className="text-sm font-medium text-white">
-                    {isLoading ? "Sending..." : "Send"}
-                  </span>
-                  <Send size={16} className="text-white" />
-                </button>
-              </form>
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type your message..."
+                      className="w-full h-10 sm:h-12 px-3 sm:px-4 text-xs sm:text-sm bg-zinc-800/50 rounded-xl border border-zinc-700/50 focus:border-zinc-600 focus:outline-none text-white placeholder-zinc-500 transition-colors"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="h-10 sm:h-12 px-3 sm:px-6 flex items-center justify-center gap-1 sm:gap-2 bg-white/30 hover:bg-white/10 disabled:bg-zinc-800 disabled:cursor-not-allowed rounded-xl transition-colors duration-200"
+                  >
+                    <span className="text-xs sm:text-sm font-medium text-white hidden sm:inline">
+                      {isLoading ? "Sending..." : "Send"}
+                    </span>
+                    <Send size={16} className="text-white" />
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
