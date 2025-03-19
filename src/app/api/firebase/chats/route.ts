@@ -34,10 +34,11 @@ export async function POST(req: Request) {
     const { chatId, title } = await req.json();
 
     const chatSessionsRef = collection(db, "chatSessions");
+
     const docRef = await addDoc(chatSessionsRef, {
       chatId,
       createdAt: new Date(),
-      title: title || "New Chat"
+      title: title
     });
 
     return NextResponse.json(
