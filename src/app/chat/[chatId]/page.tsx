@@ -19,6 +19,7 @@ import {
 import Threads from "@/components/reactbits/Threads";
 import { menuItems } from "@/config/menu-data";
 import { Heropt } from "@/components/LandingPage/herodraft";
+import { ThreeDotsLoader } from "@/components/ui/three-dot-loader";
 
 interface Message {
   id: string;
@@ -39,7 +40,7 @@ export default function Chat() {
   const [sessionDocId, setSessionDocId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const [geminiResponseLoader, setGeminiResponseLoader] = useState(false);
   console.log(sessionDocId);
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function Chat() {
       };
 
       setMessages((prev) => [...prev, userMessage]);
+      setGeminiResponseLoader(true);
 
       const geminiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
@@ -137,7 +139,7 @@ export default function Chat() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      setNewMessage("");
+      setGeminiResponseLoader(false);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -268,6 +270,11 @@ export default function Chat() {
                     </div>
                   </div>
                 ))
+              )}
+              {geminiResponseLoader && (
+                <div>
+                  <ThreeDotsLoader />
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>
