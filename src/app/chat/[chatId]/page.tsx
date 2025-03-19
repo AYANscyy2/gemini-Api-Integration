@@ -217,7 +217,7 @@ export default function Chat() {
             onClick={() => setIsMenuOpen(false)}
           />
         )}
-        <div className="absolute  w-full inset-0 flex flex-col h-screen pt-16 md:pt-4 p-4">
+        <div className="absolute  w-full inset-0 flex flex-col h-screen  p-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <MessageSquare className="text-white" />
