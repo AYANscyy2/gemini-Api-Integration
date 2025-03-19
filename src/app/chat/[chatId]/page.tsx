@@ -158,7 +158,7 @@ export default function Chat() {
   };
 
   const EmptyState = () => (
-    <div className="flex flex-col w-full h-full justify-center items-center p-4">
+    <div className="flex flex-col mt-[136px] w-full h-full justify-center items-center p-4">
       <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-neutral-600 to-neutral-400 font-light mb-6 md:mb-10 text-center">
         What can I help with?
       </h1>
@@ -184,7 +184,7 @@ export default function Chat() {
 
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="fixed top-4 right-4 z-50 p-2 text-white bg-zinc-800/50 rounded-full md:hidden"
+        className="max-md:fixed top-4 right-4 z-50 p-2 text-white bg-zinc-800/50 rounded-full md:hidden"
         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
       >
         {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -200,14 +200,14 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="relative w-full max-w-5xl mx-auto flex flex-col h-screen px-2 sm:px-4 md:px-6">
+      <div className="relative w-full max-md:max-w-5xl mx-auto flex flex-col h-screen px-2 sm:px-4 md:px-6">
         {isMenuOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
             onClick={() => setIsMenuOpen(false)}
           />
         )}
-        <div className="fixed top-0 left-0 right-0 z-10 bg-black pt-3 pb-2">
+        <div className="max-md:fixed top-0 left-0 right-0 z-10 bg-black pt-3 pb-2">
           <div className="flex items-center mt-3 ml-4 gap-3 mb-2">
             <MessageSquare className="text-white" size={20} />
             <h1 className="text-base font-medium text-zinc-200 truncate">
@@ -219,9 +219,9 @@ export default function Chat() {
 
         <div
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto rounded-lg mt-[68px] backdrop-blur-md bg-zinc-900/30 mb-20"
+          className="flex-1 w-full overflow-y-auto rounded-lg mt-[68px] backdrop-blur-md bg-zinc-900/30 mb-20"
         >
-          <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 min-h-full">
+          <div className="p-3 sm:p-4  space-y-4 sm:space-y-6 min-h-full">
             {isLoading && messages.length === 0 ? (
               <div className="text-center text-zinc-500 text-sm py-4">
                 Loading messages...
@@ -268,8 +268,8 @@ export default function Chat() {
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 px-2 sm:px-4 md:px-6 pb-3 pt-2 bg-black z-10">
-          <div className="max-w-5xl mx-auto">
+        <div className="max-md:fixed bottom-0 left-0 right-0 px-2 sm:px-4 md:px-6 pb-3 pt-2 bg-black z-10">
+          <div className="max-md:max-w-5xl mx-auto">
             <div className="h-[60px] sm:h-[70px] rounded-2xl shadow-lg  p-[1px]">
               <div className="relative w-full h-full flex justify-end items-center gap-2 bg-black rounded-2xl px-2">
                 <form
