@@ -7,8 +7,6 @@ import {
   where,
   getDocs,
   //   orderBy,
-  doc,
-  updateDoc
 } from "firebase/firestore";
 
 type Message = {
@@ -71,13 +69,13 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const { chatId, content, role } = await req.json();
-
     if (!chatId || !content || !role) {
       return NextResponse.json(
         { error: "Chat ID, content, and role are required" },
         { status: 400 }
       );
     }
+    
 
     const messagesRef = collection(db, "messages");
     const messageData = {
@@ -86,41 +84,21 @@ export async function POST(req: Request) {
       role,
       timestamp: new Date()
     };
-
     const docRef = await addDoc(messagesRef, messageData);
 
-    if (role === "user") {
-      const chatSessionsRef = collection(db, "chatSessions");
-      const sessionQuery = query(
-        chatSessionsRef,
-        where("chatId", "==", chatId)
-      );
-      const sessionSnapshot = await getDocs(sessionQuery);
-
-      if (!sessionSnapshot.empty) {
-        const sessionDoc = sessionSnapshot.docs[0];
-
-        const messagesQuery = query(
-          collection(db, "messages"),
-          where("chatId", "==", chatId),
-          where("role", "==", "user")
-          //   orderBy("timestamp", "asc")
-        );
-
-        const messagesSnapshot = await getDocs(messagesQuery);
-
-        if (
-          !messagesSnapshot.empty &&
-          messagesSnapshot.docs[0].id === docRef.id
-        ) {
-          const title =
-            content.length > 30 ? `${content.substring(0, 30)}...` : content;
-
-          await updateDoc(doc(db, "chatSessions", sessionDoc.id), { title });
-        }
-      }
+    const chatSessionsRef = collection(db, "chatSessions");
+    const sessionQuery = query(chatSessionsRef, where("chatId", "==", chatId));
+    const sessionSnapshot = await getDocs(sessionQuery);
+    
+    if (sessionSnapshot.empty && role === "user") {
+      const title = content.length > 30 ? `${content.substring(0, 30)}...` : content;
+      await addDoc(chatSessionsRef, {
+        chatId,
+        title,
+        createdAt: new Date()
+      });
     }
-
+    
     return NextResponse.json(
       { success: true, id: docRef.id, ...messageData },
       { status: 201 }
