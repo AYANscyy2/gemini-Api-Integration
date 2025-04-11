@@ -58,21 +58,27 @@ export async function createUser(data: SignupData) {
 
 export async function getUserByEmail(email: string) {
   try {
+    if (!email || typeof email !== "string") {
+      throw new Error("Invalid email provided.");
+    }
+
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", email));
 
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
+      console.warn(`No user found with email: ${email}`);
       return null;
     }
 
     const userDoc = querySnapshot.docs[0].data() as userData;
+
     return {
       ...userDoc
     };
   } catch (error) {
-    console.error("Error fetching user by email:", error);
+    console.error(`Error fetching user by email (${email}):`, error);
     return null;
   }
 }

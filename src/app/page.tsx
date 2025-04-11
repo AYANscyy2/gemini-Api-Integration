@@ -12,6 +12,8 @@ import Header from "@/components/LandingPage/header";
 import LoginForm from "@/components/LandingPage/loginForm";
 import ChatDemoSection from "@/components/LandingPage/chatDemoSection";
 import SignUpForm from "@/components/LandingPage/signupForm";
+import Footer from "@/components/LandingPage/footer";
+import Link from "next/link";
 
 const Index = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -46,9 +48,11 @@ const Index = () => {
                   that transform how you interact with technology.
                 </p>
                 <div className="hidden md:block">
-                  <Button className="bg-white text-black hover:bg-gray-200 py-6 px-8 text-lg rounded-xl">
-                    Try It Now
-                  </Button>
+                  <Link href="https://en.wikipedia.org/wiki/Gemini_(chatbot)">
+                    <Button className="bg-white text-black hover:bg-gray-200 py-6 px-8 text-lg rounded-xl">
+                      explore
+                    </Button>
+                  </Link>
                 </div>
               </div>
               <div className="w-full md:w-1/2">
@@ -59,13 +63,14 @@ const Index = () => {
         </div>
       </main>
       <ChatDemoSection />
+      <Footer />
       {/* Other sections */}
       {/* <FeaturesSection />
         
         <TestimonialsSection />
     
       
-      <Footer /> */}
+       */}
     </div>
   );
 };

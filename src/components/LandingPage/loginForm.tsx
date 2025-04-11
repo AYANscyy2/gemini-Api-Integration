@@ -43,13 +43,13 @@ const LoginForm: React.FC = () => {
         console.error("Error signing in", signInResult.error);
         router.push("/");
         toast.error("error signing in");
-        setError("Failed to sign in with Google");
+        setError(`${signInResult.error}`);
       } else {
         router.push(`/chat/${chatId}`);
       }
     } catch (error) {
       console.error("Error signing in with Google:", error);
-      setError("Failed to sign in with Google");
+      setError(`${error}`);
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-// middleware.ts (create this file in your root directory)
+// middleware.ts
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
@@ -6,8 +6,7 @@ import type { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  const publicPaths = ["/", "/api/auth"];
-
+  const publicPaths = ["/", "/register", "/api/auth"];
   const isPublicPath = publicPaths.some(
     (publicPath) => path === publicPath || path.startsWith(publicPath + "/")
   );
@@ -19,17 +18,25 @@ export async function middleware(request: NextRequest) {
 
   if (!token && !isPublicPath) {
     const loginUrl = new URL("/", request.url);
-    loginUrl.searchParams.set("callbackUrl", encodeURI(request.url));
+    loginUrl.searchParams.set("callbackUrl", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
   if (token && (path === "/" || path === "/register")) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const homeUrl = new URL("/chat", request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/auth).*)"]
+  matcher: [
+    /*
+      Match all paths except:
+      - static files (_next, images, favicon)
+      - API routes except /api/auth
+    */
+    "/((?!_next/static|_next/image|favicon.ico|api/(?!auth)).*)"
+  ]
 };

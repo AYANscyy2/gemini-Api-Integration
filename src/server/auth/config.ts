@@ -1,15 +1,12 @@
-// 1. First, update your NextAuth configuration to include credentials provider
-// server/auth/config.ts
-import Google from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
-import { compare } from "bcryptjs"; // You'll need to install this: npm install bcryptjs
+import { compare } from "bcryptjs";
 import { getUserByEmail } from "@/app/action";
-// import { getUserByEmail } from "@/lib/db"; // Create this function to fetch user from your database
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!
     }),
@@ -21,37 +18,35 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
-          return null;
+          throw new Error("Missing email or password");
         }
 
-        try {
-          const user = await getUserByEmail(credentials.email);
+        const user = await getUserByEmail(credentials.email);
 
-          if (!user || !user.password) {
-            return null;
-          }
-
-          const isPasswordValid = await compare(
-            credentials.password,
-            user.password
-          );
-
-          if (!isPasswordValid) {
-            return null;
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name
-          };
-        } catch (error) {
-          console.error("Authentication error:", error);
-          return null;
+        if (!user || !user.password) {
+          throw new Error("No user found or password missing");
         }
+
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!isPasswordValid) {
+          throw new Error("Invalid password");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name
+        };
       }
     })
   ],
+  session: {
+    strategy: "jwt"
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -71,9 +66,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    error: "/login" // Error code passed in query string as ?error=
+    error: "/login"
   },
-  session: {
-    strategy: "jwt"
-  }
+  debug: process.env.NODE_ENV === "development"
 };

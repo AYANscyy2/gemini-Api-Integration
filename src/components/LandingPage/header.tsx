@@ -40,11 +40,11 @@ const Header = ({
             <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
               <span className="text-black font-bold">AI</span>
             </div>
-            <span className="text-white font-bold text-xl">ChatBot</span>
+            <span className="text-white font-bold text-xl">WiWiBot</span>
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* <nav className="hidden md:flex items-center space-x-8">
             <a
               href="#features"
               className="text-gray-400 hover:text-white transition-colors"
@@ -63,7 +63,7 @@ const Header = ({
             >
               Documentation
             </a>
-          </nav>
+          </nav> */}
 
           <div className="hidden md:flex items-center space-x-2">
             <Button
@@ -94,7 +94,6 @@ const Header = ({
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -110,11 +109,11 @@ const Header = ({
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-black border-b border-gray-800">
           <div className="container px-4 mx-auto py-4">
             <nav className="flex flex-col space-y-4">
+              {/* 
               <a
                 href="#features"
                 className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md hover:bg-white/5"
@@ -135,11 +134,11 @@ const Header = ({
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Documentation
-              </a>
+              </a> */}
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-800">
                 <Button
                   variant="outline"
-                  className="w-full justify-center border-white/20 hover:bg-white/10"
+                  className="w-full justify-center text-white border-white/20 hover:bg-white/10"
                 >
                   Sign up
                 </Button>
