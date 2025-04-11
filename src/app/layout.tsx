@@ -38,12 +38,10 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        suppressHydrationWarning
         className={`${geistSans.variable} ${roboto.variable} ${geistMono.variable} antialiased flex `}
       >
         <UseSideBar />
         <div className="w-[100%]  overflow-x-hidden">
-          {" "}
           <Providers>{children}</Providers>
         </div>
       </body>
