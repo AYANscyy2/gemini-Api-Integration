@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/LandingPage/hero";
+// import { Sidebar } from "@/components/LandingPage/hero";
+// import { usePathname } from "next/navigation";
+import { UseSideBar } from "@/components/LandingPage/useSideBar";
+import { Providers } from "./providers";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -29,17 +32,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const pathname = usePathname();
+
   return (
     <html lang="en">
       <body
         suppressHydrationWarning
+        suppressHydrationWarning
         className={`${geistSans.variable} ${roboto.variable} ${geistMono.variable} antialiased flex `}
       >
-        <div className="hidden md:flex md:max-w-[20%]  2xl:max-w-[30%] ">
-          <Sidebar />
-        </div>
-        <div className="w-[100%] md:min-w-[80%] overflow-x-hidden">
-          {children}
+        <UseSideBar />
+        <div className="w-[100%]  overflow-x-hidden">
+          {" "}
+          <Providers>{children}</Providers>
         </div>
       </body>
     </html>
