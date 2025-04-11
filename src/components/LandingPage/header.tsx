@@ -138,11 +138,22 @@ const Header = ({
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-800">
                 <Button
                   variant="outline"
-                  className="w-full justify-center text-white border-white/20 hover:bg-white/10"
+                  onClick={() => {
+                    handleSignUp("true");
+                    setIsMobileMenuOpen(!isMobileMenuOpen);
+                  }}
+                  className="w-full justify-center text-black border-white/20 hover:bg-white/10"
                 >
                   Sign up
                 </Button>
-                <Button className="w-full justify-center bg-white text-black hover:bg-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleSignUp("false");
+                    setIsMobileMenuOpen(!isMobileMenuOpen);
+                  }}
+                  className="w-full justify-center bg-white text-black hover:bg-gray-200"
+                >
                   Login
                 </Button>
               </div>
