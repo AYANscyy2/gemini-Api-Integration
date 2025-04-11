@@ -162,7 +162,7 @@ export function Sidebar() {
           </div>
           {!isCollapsed && (
             <h1 className="text-xl font-semibold text-white tracking-tight">
-              Gemini Chat
+              WiWiChat
             </h1>
           )}
         </div>
