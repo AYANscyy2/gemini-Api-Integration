@@ -14,12 +14,14 @@ import {
 } from "@/components/ui/card";
 import { v4 } from "uuid";
 import { toast } from "sonner";
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, AlertCircle } from "lucide-react";
 import { RiGoogleLine } from "react-icons/ri";
 import { signIn } from "next-auth/react";
+import { createUser } from "@/app/action";
 import { useRouter } from "next/navigation";
 
-const LoginForm: React.FC = () => {
+const SignUpForm: React.FC = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +33,29 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+
     try {
+      // Validate inputs (optional)
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters");
+        return;
+      }
+
+      // Call the createUser server action
+      const result = await createUser({
+        email,
+        password,
+        name: name || email.split("@")[0] // Use part of email as name if not provided
+      });
+
+      if (!result.success) {
+        setError(result.error || "Failed to create account");
+        toast.error(result.error || "Failed to create account");
+        return;
+      }
+
+      toast.success("Account created successfully!");
+
       const signInResult = await signIn("credentials", {
         redirect: false,
         email,
@@ -40,22 +64,21 @@ const LoginForm: React.FC = () => {
       const chatId = v4();
 
       if (signInResult?.error) {
-        console.error("Error signing in", signInResult.error);
+        console.error("Error signing in after signup:", signInResult.error);
         router.push("/");
-        toast.error("error signing in");
-        setError("Failed to sign in with Google");
       } else {
         router.push(`/chat/${chatId}`);
       }
     } catch (error) {
-      console.error("Error signing in with Google:", error);
-      setError("Failed to sign in with Google");
+      console.error("Error creating account:", error);
+      setError("Failed to create account");
+      toast.error("Failed to create account");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
     setIsLoading(true);
     setError("");
     const chatId = v4();
@@ -63,11 +86,11 @@ const LoginForm: React.FC = () => {
       await signIn("google", {
         callbackUrl: `/chat/${chatId}`
       });
-      toast.success("Successfully logged in!");
+      toast.success("Successfully signed up!");
     } catch (error) {
-      console.error("Error signing in with Google:", error);
-      setError("Failed to sign in with Google");
-      toast.error("Failed to sign in with Google");
+      console.error("Error signing up with Google:", error);
+      setError("Failed to sign up with Google");
+      toast.error("Failed to sign up with Google");
     } finally {
       setIsLoading(false);
     }
@@ -77,9 +100,9 @@ const LoginForm: React.FC = () => {
     <Card className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)] w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl text-white font-bold">
-          Welcome back
+          Create an account
         </CardTitle>
-        <CardDescription>Log in to your account to continue</CardDescription>
+        <CardDescription>Sign up to get started</CardDescription>
         {error && (
           <div className="mt-4 p-3 rounded-lg bg-destructive/15 border border-destructive/30 flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
@@ -90,6 +113,21 @@ const LoginForm: React.FC = () => {
       <CardContent>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="pl-10 text-white bg-white/10 border-white/10"
+                  required
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -106,16 +144,7 @@ const LoginForm: React.FC = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="password">Password</Label>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="p-0 h-auto text-xs text-gray-400"
-                >
-                  Forgot password?
-                </Button>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-500" />
                 <Input
@@ -147,7 +176,7 @@ const LoginForm: React.FC = () => {
               className="w-full mt-2 bg-white/[0.7] text-black hover:bg-gray-200"
               disabled={isLoading}
             >
-              {isLoading ? "Logging in..." : "Log in"}
+              {isLoading ? "Creating account..." : "Sign up"}
             </Button>
           </div>
         </form>
@@ -161,7 +190,7 @@ const LoginForm: React.FC = () => {
         <div className="w-full">
           <Button
             variant="outline"
-            onClick={handleGoogleSignIn}
+            onClick={handleGoogleSignUp}
             className="w-full bg-white/[0.7] border-white/10 hover:text-white hover:bg-white/10"
             disabled={isLoading}
           >
@@ -170,9 +199,9 @@ const LoginForm: React.FC = () => {
           </Button>
         </div>
         <div className="text-center text-sm text-gray-500">
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <Button variant="link" className="p-0 h-auto text-gray-300">
-            Sign up
+            Log in
           </Button>
         </div>
       </CardFooter>
@@ -180,4 +209,4 @@ const LoginForm: React.FC = () => {
   );
 };
 
-export default LoginForm;
+export default SignUpForm;

@@ -12,9 +12,10 @@ import {
   ChevronLeft,
   // HomeIcon,
   AppWindow,
-  ChevronRight
+  ChevronRight,
+  LogOutIcon
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 interface ChatSession {
   id: string;
@@ -256,7 +257,14 @@ export function Sidebar() {
               <RiMessengerLine size={24} className="text-white/[0.6]" />
             </div>
           )}
-        </div>
+        </div>{" "}
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="hover:bg-red-800/15 gap-2 fixed bottom-3  rounded-xl text-red-800 flex items-center w-[90%] py-4 px-3 transition-all duration-200 cursor-pointer border border-transparent hover:border-red-900/5"
+        >
+          <LogOutIcon size={18} className="text-red-800" />
+          Sign Out
+        </button>
       </div>
     </div>
   );

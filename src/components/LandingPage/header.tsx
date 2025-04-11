@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
-const Header: React.FC = () => {
+const Header = ({
+  handleSignUp
+}: {
+  handleSignUp: (label: string) => void;
+}) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSignup, setIssignup] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,12 +65,31 @@ const Header: React.FC = () => {
             </a>
           </nav>
 
-          {/* Login/Signup Buttons */}
           <div className="hidden md:flex items-center space-x-2">
-            <Button variant="link" className="text-gray-300 hover:text-white">
+            <Button
+              onClick={() => {
+                handleSignUp("true");
+                setIssignup(true);
+              }}
+              className={`${
+                !isSignup
+                  ? "bg-none text-white "
+                  : "bg-white text-black hover:bg-gray-200"
+              }`}
+            >
               Sign up
             </Button>
-            <Button className="bg-white text-black hover:bg-gray-200">
+            <Button
+              onClick={() => {
+                handleSignUp("false");
+                setIssignup(false);
+              }}
+              className={`${
+                isSignup
+                  ? "bg-none text-white "
+                  : "bg-white text-black hover:bg-gray-200"
+              }`}
+            >
               Login
             </Button>
           </div>

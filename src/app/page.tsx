@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 // import Header from "@/components/Header";
 // import HeroSection from "@/components/HeroSection";
 // import LoginForm from "@/components/LoginForm";
@@ -11,11 +11,19 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/LandingPage/header";
 import LoginForm from "@/components/LandingPage/loginForm";
 import ChatDemoSection from "@/components/LandingPage/chatDemoSection";
+import SignUpForm from "@/components/LandingPage/signupForm";
 
 const Index = () => {
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const handleIsSignUp = (label: string) => {
+    if (label === "true") setIsSignUp(true);
+
+    if (label === "false") setIsSignUp(false);
+  };
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header />
+      <Header handleSignUp={handleIsSignUp} />
 
       <main>
         <div className="pt-24 md:pt-32 pb-20 relative">
@@ -44,7 +52,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="w-full md:w-1/2">
-                <LoginForm />
+                {isSignUp ? <SignUpForm /> : <LoginForm />}
               </div>
             </div>
           </div>
