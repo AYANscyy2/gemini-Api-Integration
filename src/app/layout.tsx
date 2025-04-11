@@ -38,6 +38,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
+        suppressHydrationWarning
         className={`${geistSans.variable} ${roboto.variable} ${geistMono.variable} antialiased flex `}
       >
         <UseSideBar />
