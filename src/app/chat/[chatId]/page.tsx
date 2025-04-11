@@ -1,11 +1,13 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, JSX } from "react";
 import type React from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { User, Bot, Send, X, Menu, MessageSquare, Loader2 } from "lucide-react";
 import { menuItems } from "@/config/menu-data";
-import { Sidebar } from "@/components/LandingPage/hero";
+import { Sidebar } from "@/components/LandingPage/sidebar";
+import DOMPurify from "dompurify";
+import { useSession } from "next-auth/react";
 
 interface Message {
   id: string;
@@ -15,8 +17,86 @@ interface Message {
   timestamp: string | { seconds: number; nanoseconds: number };
 }
 
+const formatResponse = (text: string) => {
+  const elements: JSX.Element[] = [];
+  let currentList: { type: "ul" | "ol"; items: JSX.Element[] } | null = null;
+
+  const closeList = () => {
+    if (currentList && currentList.items.length > 0) {
+      elements.push(
+        currentList.type === "ul" ? (
+          <ul
+            key={`ul-${elements.length}`}
+            className="list-disc list-inside ml-4 space-y-1.5"
+          >
+            {currentList.items}
+          </ul>
+        ) : (
+          <ol
+            key={`ol-${elements.length}`}
+            className="list-decimal list-inside ml-4 space-y-1.5"
+          >
+            {currentList.items}
+          </ol>
+        )
+      );
+    }
+    currentList = null;
+  };
+
+  const processLine = (line: string, index: number) => {
+    let formattedLine = DOMPurify.sanitize(line.trim());
+
+    formattedLine = formattedLine
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>");
+    if (/^\d+\.\s/.test(formattedLine)) {
+      if (!currentList || currentList.type !== "ol") {
+        closeList();
+        currentList = { type: "ol", items: [] };
+      }
+      currentList.items.push(
+        <li key={`li-${index}`} className="pl-2">
+          <span
+            dangerouslySetInnerHTML={{
+              __html: formattedLine.replace(/^\d+\.\s/, "")
+            }}
+          />
+        </li>
+      );
+    } else if (formattedLine.startsWith("- ")) {
+      if (!currentList || currentList.type !== "ul") {
+        closeList();
+        currentList = { type: "ul", items: [] };
+      }
+      currentList.items.push(
+        <li key={`li-${index}`} className="pl-2">
+          <span
+            dangerouslySetInnerHTML={{ __html: formattedLine.substring(2) }}
+          />
+        </li>
+      );
+    } else {
+      closeList();
+      elements.push(
+        <p
+          key={`p-${index}`}
+          className="mb-3 leading-relaxed text-zinc-200"
+          dangerouslySetInnerHTML={{ __html: formattedLine }}
+        />
+      );
+    }
+  };
+
+  text.split("\n").forEach(processLine);
+  closeList();
+
+  return elements;
+};
+
 export default function Chat() {
   const params = useParams<{ chatId: string }>();
+  const { data: session, status } = useSession();
   const { chatId } = params;
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -27,6 +107,9 @@ export default function Chat() {
   const [isTyping, setIsTyping] = useState(false);
 
   console.log(sessionDocId);
+  if (status === "loading") {
+    <>loading ....</>;
+  }
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -69,64 +152,71 @@ export default function Chat() {
       setIsTyping(true);
       const userMessageContent = newMessage;
       setNewMessage("");
+      if (session && session.user?.email) {
+        console.log(session.user.email);
+        const userMessageData = await axios.post("/api/firebase/messages", {
+          chatId,
+          content: userMessageContent,
+          role: "user",
+          email: session.user.email
+        });
 
-      const userMessageData = await axios.post("/api/firebase/messages", {
-        chatId,
-        content: userMessageContent,
-        role: "user"
-      });
+        const userMessage = {
+          id: userMessageData.data.id,
+          chatId: chatId as string,
+          content: userMessageContent,
+          role: "user" as const,
+          timestamp: new Date().toISOString()
+        };
 
-      const userMessage = {
-        id: userMessageData.data.id,
-        chatId: chatId as string,
-        content: userMessageContent,
-        role: "user" as const,
-        timestamp: new Date().toISOString()
-      };
+        setMessages((prev) => [...prev, userMessage]);
 
-      setMessages((prev) => [...prev, userMessage]);
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [{ text: userMessageContent }]
+                }
+              ]
+            })
+          }
+        );
 
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: userMessageContent }]
-              }
-            ]
-          })
+        if (!geminiResponse.ok) {
+          throw new Error(`Gemini API Error: ${geminiResponse.statusText}`);
         }
-      );
 
-      if (!geminiResponse.ok) {
-        throw new Error(`Gemini API Error: ${geminiResponse.statusText}`);
+        const geminiData = await geminiResponse.json();
+        const assistantReply =
+          geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "Sorry, I didn't understand that.";
+
+        const assistantMessageData = await axios.post(
+          "/api/firebase/messages",
+          {
+            chatId,
+            content: assistantReply,
+            email: session.user.email,
+            role: "assistant"
+          }
+        );
+
+        const assistantMessage = {
+          id: assistantMessageData.data.id,
+          chatId: chatId as string,
+          content: assistantReply,
+          role: "assistant" as const,
+          timestamp: new Date().toISOString()
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
       }
-
-      const geminiData = await geminiResponse.json();
-      const assistantReply =
-        geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "Sorry, I didn't understand that.";
-
-      const assistantMessageData = await axios.post("/api/firebase/messages", {
-        chatId,
-        content: assistantReply,
-        role: "assistant"
-      });
-
-      const assistantMessage = {
-        id: assistantMessageData.data.id,
-        chatId: chatId as string,
-        content: assistantReply,
-        role: "assistant" as const,
-        timestamp: new Date().toISOString()
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -210,7 +300,7 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="relative w-full max-md:max-w-5xl mx-auto flex flex-col h-screen px-2 sm:px-4 md:px-6">
+      <div className="relative w-full max-md:max-w-5xl mx-auto flex flex-col h-screen px-2">
         {isMenuOpen && (
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden"
@@ -222,14 +312,14 @@ export default function Chat() {
           <div className="flex items-center mt-3 ml-4 gap-3 mb-2">
             <MessageSquare className="text-white" size={20} />
             <h1 className="text-base font-medium text-zinc-200 truncate">
-              {chatTitle || "Chat"}
+              {chatTitle || "New Chat"}
             </h1>
           </div>
         </div>
 
         <div
           ref={chatContainerRef}
-          className="flex-1 w-full overflow-y-auto rounded-lg mt-[68px] mb-20 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
+          className="flex-1 w-full overflow-y-auto rounded-lg my-2 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
         >
           <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 min-h-full">
             {isFetching ? (
@@ -263,9 +353,11 @@ export default function Chat() {
                           : "bg-zinc-800/50 text-zinc-200 border border-zinc-700/50"
                       }`}
                     >
-                      <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
+                      <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {message.role === "assistant"
+                          ? formatResponse(message.content)
+                          : message.content}
+                      </div>
                       <div className="mt-1 text-[10px] sm:text-[11px] text-zinc-500">
                         {formatTimestamp(message.timestamp)}
                       </div>

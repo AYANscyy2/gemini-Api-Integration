@@ -5,7 +5,7 @@ import {
   addDoc,
   query,
   where,
-  getDocs,
+  getDocs
   //   orderBy,
 } from "firebase/firestore";
 
@@ -68,19 +68,19 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { chatId, content, role } = await req.json();
+    const { chatId, content, role, email } = await req.json();
     if (!chatId || !content || !role) {
       return NextResponse.json(
         { error: "Chat ID, content, and role are required" },
         { status: 400 }
       );
     }
-    
 
     const messagesRef = collection(db, "messages");
     const messageData = {
       chatId,
       content,
+      email,
       role,
       timestamp: new Date()
     };
@@ -89,16 +89,18 @@ export async function POST(req: Request) {
     const chatSessionsRef = collection(db, "chatSessions");
     const sessionQuery = query(chatSessionsRef, where("chatId", "==", chatId));
     const sessionSnapshot = await getDocs(sessionQuery);
-    
+
     if (sessionSnapshot.empty && role === "user") {
-      const title = content.length > 30 ? `${content.substring(0, 30)}...` : content;
+      const title =
+        content.length > 30 ? `${content.substring(0, 30)}...` : content;
       await addDoc(chatSessionsRef, {
         chatId,
+        email,
         title,
         createdAt: new Date()
       });
     }
-    
+
     return NextResponse.json(
       { success: true, id: docRef.id, ...messageData },
       { status: 201 }

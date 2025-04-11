@@ -5,7 +5,7 @@ import {
   addDoc,
   query,
   getDocs,
-  orderBy,
+  // orderBy,
   deleteDoc,
   where,
   doc,
@@ -13,15 +13,37 @@ import {
   getDoc
 } from "firebase/firestore";
 
-export async function GET() {
+interface ChatSession {
+  id: string;
+  email: string;
+  createdAt: Date;
+  title: string;
+}
+
+export async function GET(req: Request): Promise<Response> {
+  const { searchParams } = new URL(req.url);
+  const email: string | null = searchParams.get("email");
+  // console.log("ry", email);
+
+  if (!email) {
+    return NextResponse.json(
+      { error: "Email query parameter is required" },
+      { status: 400 }
+    );
+  }
+
   try {
     const chatSessionsRef = collection(db, "chatSessions");
-    const q = query(chatSessionsRef, orderBy("createdAt", "desc"));
+    const q = query(
+      chatSessionsRef,
+      where("email", "==", email)
+      // orderBy("createdAt", "desc")
+    );
     const querySnapshot = await getDocs(q);
 
-    const sessions = querySnapshot.docs.map((doc) => ({
+    const sessions: ChatSession[] = querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...(doc.data() as Omit<ChatSession, "id">)
     }));
 
     return NextResponse.json({ sessions }, { status: 200 });
