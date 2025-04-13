@@ -321,9 +321,9 @@ export default function Chat() {
 
         <div
           ref={chatContainerRef}
-          className="flex-1 w-full overflow-y-auto rounded-lg my-2 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
+          className="flex-1 w-full overflow-y-auto rounded-lg mt-20 my-2 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
         >
-          <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 min-h-full">
+          <div className="p-3 sm:p-4 space-y-4  sm:space-y-6 min-h-full">
             {isFetching ? (
               <LoadingState />
             ) : messages.length === 0 ? (
