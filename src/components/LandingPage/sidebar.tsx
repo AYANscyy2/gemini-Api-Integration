@@ -260,10 +260,14 @@ export function Sidebar() {
         </div>{" "}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="hover:bg-red-800/15 gap-2 fixed bottom-3  rounded-xl text-red-800 flex items-center w-[90%] py-4 px-3 transition-all duration-200 cursor-pointer border border-transparent hover:border-red-900/5"
+          className={`${
+            !isCollapsed
+              ? "hover:bg-red-800/15"
+              : "hover:scale-[1.02] active:scale-[0.98]"
+          }  gap-2 fixed bottom-3  rounded-xl text-red-800 flex items-center w-[90%] py-4 px-3 transition-all duration-200 cursor-pointer border border-transparent hover:border-red-900/5`}
         >
           <LogOutIcon size={18} className="text-red-800" />
-          Sign Out
+          {!isCollapsed && "Sign Out"}
         </button>
       </div>
     </div>
