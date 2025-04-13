@@ -20,22 +20,17 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials.password) {
           throw new Error("Missing email or password");
         }
-
         const user = await getUserByEmail(credentials.email);
-
         if (!user || !user.password) {
           throw new Error("No user found or password missing");
         }
-
         const isPasswordValid = await compare(
           credentials.password,
           user.password
         );
-
         if (!isPasswordValid) {
           throw new Error("Invalid password");
         }
-
         return {
           id: user.id,
           email: user.email,
@@ -45,7 +40,8 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 2 * 24 * 60 * 60
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -62,6 +58,18 @@ export const authOptions: NextAuthOptions = {
           id: token.id
         }
       };
+    }
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 2 * 24 * 60 * 60
+      }
     }
   },
   pages: {
