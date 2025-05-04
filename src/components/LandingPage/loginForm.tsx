@@ -31,7 +31,12 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+
     try {
+      if (password.length < 6) {
+        setError("password should be atleast 6 letters");
+        return;
+      }
       const signInResult = await signIn("credentials", {
         redirect: false,
         email,
