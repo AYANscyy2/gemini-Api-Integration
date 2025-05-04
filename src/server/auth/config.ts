@@ -60,18 +60,18 @@ export const authOptions: NextAuthOptions = {
       };
     }
   },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 2 * 24 * 60 * 60
-      }
-    }
-  },
+  // cookies: {
+  //   sessionToken: {
+  //     name: `next-auth.session-token`,
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: process.env.NODE_ENV === "production",
+  //       maxAge: 2 * 24 * 60 * 60
+  //     }
+  //   }
+  // },
   pages: {
     signIn: "/login",
     error: "/login"
