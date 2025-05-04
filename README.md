@@ -1,4 +1,4 @@
-# Next.js Chat Application
+# Next.js Chat Application - WIWI Chatbot
 
 A modern, full-featured chat application built with Next.js, Firebase, and Gemini AI integration.
 
